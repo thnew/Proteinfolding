@@ -9,14 +9,7 @@
 
 void show(Amino*);
 int fitness(Amino*);
-void mutate(Amino* faltung);
-
-/*
-int GetMinX(int*);
-int GetMaxX(int*);
-int GetMinY(int*);
-int GetMaxY(int*);
-//*/
+void mutate(Amino*, double);
 
 const int FALTUNG_LENGTH = 30;
 
@@ -25,10 +18,9 @@ HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
 
 void main()
 {
-	Amino* faltung = new Amino[FALTUNG_LENGTH];
-	
 	int amountProteins = 15;
-	int generations = 200;
+	int generations = 10;
+	double mutationRate = 10;
 
 	std::list<Amino*> populations = std::list<Amino*>();
 
@@ -39,6 +31,9 @@ void main()
 	std::cout << "Proteins -> ";
 	for(int i = 0; i<amountProteins; i++) std::cout << std::setw(numberWidth) << std::right << i;
 	SetConsoleTextAttribute(hstdout, 0x0f);
+	std::cout << " | Aver";
+	std::cout << " Best";
+	std::cout << " Best";
 	std::cout << std::endl;
 
 	// Population generieren
@@ -67,12 +62,19 @@ void main()
 		std::list<Amino*>::iterator iter;
 		Amino* bestGenerationProtein = 0;
 		int bestGenerationProtein_fitness = -1;
+		double generationAverage = 0;
 		for (iter = populations.begin(); iter != populations.end(); ++iter)
 		{
-			mutate(*iter);
+			// Mutieren
+			mutate(*iter, mutationRate);
 
+			// Fitness ausrechnen
 			int f = fitness(*iter);
 
+			// Fitness in die Durschnittsrechnung einrechnen
+			generationAverage += f;
+
+			// Pr¸fen, ob es der Geneerationsbeste ist
 			if(f > bestGenerationProtein_fitness)
 			{
 				bestGenerationProtein_fitness = f;
@@ -80,6 +82,9 @@ void main()
 			}
 		}
 
+		// Durschnittsrechnung abschlieﬂen
+		generationAverage = pow(generationAverage / populations.size() * 10, 0) / 10.0;
+		
 		// Anzeigen
 		for (iter = populations.begin(); iter != populations.end(); ++iter)
 		{
@@ -93,12 +98,23 @@ void main()
 			SetConsoleTextAttribute(hstdout, 0x0f);
 		}
 
-		if(bestGenerationProtein_fitness > bestProtein_fitness)
+		// Auswerten, ob es bestes Protein ist
+		bool isNewBest = (bestGenerationProtein_fitness > bestProtein_fitness); 
+		
+		if(isNewBest)
 		{
-			//bestProtein = bestGenerationProtein;
 			memcpy(bestProtein, bestGenerationProtein, FALTUNG_LENGTH * sizeof(*bestGenerationProtein));
 			bestProtein_fitness = bestGenerationProtein_fitness;
 		}
+
+		// Auswertung anzeigen
+		std::cout << " |" << std::setw(5) << generationAverage;
+		
+		std::cout << std::setw(5) << bestGenerationProtein_fitness;
+		
+		if(isNewBest) SetConsoleTextAttribute(hstdout, 0xa0);
+		std::cout << std::setw(5) << bestProtein_fitness;
+		SetConsoleTextAttribute(hstdout, 0x0f);
 
 		std::cout << std::endl;
 	}
@@ -106,82 +122,43 @@ void main()
 	std::cout << std::endl;
 
 	std::cout << "BEST PROTEIN with fitness " << bestProtein_fitness << std::endl;
-	std::cout << "Fitness recalculated: " << fitness(bestProtein) << std::endl;
+	//std::cout << "Fitness recalculated: " << fitness(bestProtein) << std::endl;
 
 	show(bestProtein);
-
-	/*
-	faltung[0] = Amino(FORWARD, false);
-	faltung[1] = Amino(FORWARD, true);
-	faltung[2] = Amino(RIGHT, false);
-	if(FALTUNG_LENGTH >= 4) faltung[3] = Amino(RIGHT, true);
-	if(FALTUNG_LENGTH >= 5) faltung[4] = Amino(FORWARD, false);
-	if(FALTUNG_LENGTH >= 6) faltung[5] = Amino(FORWARD, true);
-	if(FALTUNG_LENGTH >= 7) faltung[6] = Amino(RIGHT, false);
-	//*/
-
-	/*
-	Amino* lastFitness = new Amino[FALTUNG_LENGTH];
-	memcpy(lastFitness, faltung, sizeof(faltung));
-
-	int bestFitness = -1;
-
-	for(int i = 0; i<500; i++)
-	{
-		mutate(faltung);
-		
-		int f = fitness(faltung);
-		
-		if(f == -1) std::cout << "Invalid";
-		else if(f == -2) std::cout << "Algorithm calculated a fitness smaller than 0, what is not possible";
-		else std::cout << "Fitness: " << f;
-
-		// Wenn Fitness schlechter als die der besten Faltung, dann die Beste laden
-		if(f < bestFitness)
-		{
-			memcpy(faltung, lastFitness, sizeof(lastFitness));
-			
-			std::cout << " -> not good enough";
-		}
-		else
-		{
-			memcpy(lastFitness, faltung, sizeof(faltung));
-			bestFitness = f;
-		}
-
-		std::cout << std::endl;
-	}
-
-	std::cout << std::endl << "BestFitness: " << bestFitness;
-	//*/
 
 	std::cout << std::endl;
 
 	//system("PAUSE");
 }
 
-void mutate(Amino* faltung)
+void mutate(Amino* faltung, double mutationRate)
 {
-	// Nach Zufall eine Aminos‰ure ermitteln
-	int randAmino = rand() % FALTUNG_LENGTH;
-	
-	// so lange eine neue zuf‰llige Richtung ermitteln, bis eine NEUE Richtung ermittelt wurde
-	int randDir;
-	do
+	int mutations = (mutationRate / 100.0) * FALTUNG_LENGTH;
+	mutations = (mutations == 0 ? 1 : mutations);
+
+	for(int i=0; i<mutations; i++)
 	{
-		randDir = rand() % 3;
-
-		// Zufallszahl in die Richtung aus dem enum umwandeln
-		switch(randDir)
+		// Nach Zufall eine Aminos‰ure ermitteln
+		int randAmino = rand() % FALTUNG_LENGTH;
+	
+		// so lange eine neue zuf‰llige Richtung ermitteln, bis eine NEUE Richtung ermittelt wurde
+		int randDir;
+		do
 		{
-			case 0: randDir = FORWARD; break;
-			case 1: randDir = LEFT; break;
-			case 2: randDir = RIGHT; break;
-		}
-	} while(randDir == faltung[randAmino].GetDir());
+			randDir = rand() % 3;
 
-	// Richtung in der Aminos‰ure setzen
-	faltung[randAmino].SetDir((Direction)randDir);
+			// Zufallszahl in die Richtung aus dem enum umwandeln
+			switch(randDir)
+			{
+				case 0: randDir = FORWARD; break;
+				case 1: randDir = LEFT; break;
+				case 2: randDir = RIGHT; break;
+			}
+		} while(randDir == faltung[randAmino].GetDir());
+
+		// Richtung in der Aminos‰ure setzen
+		faltung[randAmino].SetDir((Direction)randDir);
+	}
 }
 
 int fitness(Amino* faltung)
@@ -213,7 +190,6 @@ int fitness(Amino* faltung)
 		// Anfangskoordinaten setzen
 		x = startX;
 		y = startY;
-		//*/
 		#pragma endregion
 
 		#pragma region Aminos in Matrix eintragen
@@ -266,15 +242,6 @@ int fitness(Amino* faltung)
 			// In Matrix eintragen
 			matrix[x][y] = (amino->IsHydrophob() ? 1 : 0);
 
-			/*/ zus‰tzlich eintragen, ob Nord oder S¸d
-			matrix[x][y] |= (amino->GetDir() == NORTH) * 10000;
-			matrix[x][y] |= (amino->GetDir() == EAST) * 1000;
-			matrix[x][y] |= (amino->GetDir() == SOUTH) * 100;
-			matrix[x][y] |= (amino->GetDir() == WEST) * 10;
-			//*/
-
-			//std::cout << x << "/" << y << ": " << amino->IsHydrophob() << std::endl;
-			
 			lastIsHydrophob = amino->IsHydrophob();
 		}
 		#pragma endregion
@@ -282,13 +249,6 @@ int fitness(Amino* faltung)
 		#pragma region Matrix ausgeben
 		if(show)
 		{
-			/*/ Die Maﬂe des Protins errechnen
-			int minX = GetMinX(matrix);
-			int maxX = GetMaxX(matrix);
-			int minY = GetMinY(matrix);
-			int maxY = GetMaxY(matrix);
-			//*/
-			
 			const int protWidth = maxX - minX;
 			const int protHeight = maxY - minY;
 
@@ -323,17 +283,11 @@ int fitness(Amino* faltung)
 				// Wenn Hydrophob, dann beahndeln
 				else if(hydrophob == 1)
 				{
-					//std::cout << x << "/" << y << std::endl;
-					
-					//std::cout << "Before:" << connections;
-					
 					// Alle Verbindungen des Hydrophobs z‰hlen
 					if(matrix[x+1][y] == 1) connections++;
 					if(matrix[x-1][y] == 1) connections++;
 					if(matrix[x][y+1] == 1) connections++;
 					if(matrix[x][y-1] == 1) connections++;
-
-					//std::cout << "After:" << connections << std::endl;
 
 					// Markierung auf leer setzen
 					matrix[x][y] = -1;
@@ -437,14 +391,7 @@ void show(Amino* faltung)
 	}
 	#pragma endregion
 	
-	#pragma region Aminos anzeigen
-	/*/ Die Maﬂe des Protins errechnen
-	int minX = GetMinX(matrix);
-	int maxX = GetMaxX(matrix);
-	int minY = GetMinY(matrix);
-	int maxY = GetMaxY(matrix);
-	//*/
-			
+	#pragma region Aminos anzeigen	
 	//const int protWidth = maxX - minX;
 	//const int protHeight = maxY - minY;
 
@@ -457,6 +404,8 @@ void show(Amino* faltung)
 
 	for(int y = maxY; y>=minY; y--)
 	{
+		std::cout << std::setw(3) << (-(y-maxY)+1);
+
 		for(int x = minX; x<=maxX; x++)
 		{
 			Amino::DisplayInfo* amino = matrix[x][y];
@@ -502,69 +451,3 @@ void show(Amino* faltung)
 	}
 	#pragma endregion
 }
-
-/*
-int GetMinX(Amino* faltung)
-{
-	int minX = 0;
-	int x = 0;
-
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		if(faltung[i].GetDir() == EAST) x++;
-		else if(faltung[i].GetDir() == WEST) x--;
-
-		if(x < minX) minX = x;
-	}
-
-	return minX;
-}
-
-int GetMaxX(Amino* faltung)
-{
-	int maxX = 0;
-	int x = 0;
-
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		if(faltung[i].GetDir() == EAST) x++;
-		else if(faltung[i].GetDir() == WEST) x--;
-
-		if(x > maxX) maxX = x;
-	}
-
-	return maxX;
-}
-
-int GetMinY(Amino* faltung)
-{
-	int minY = 0;
-	int y = 0;
-
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		if(faltung[i].GetDir() == NORTH) y++;
-		else if(faltung[i].GetDir() == SOUTH) y--;
-
-		if(y < minY) minY = y;
-	}
-
-	return minY;
-}
-
-int GetMaxY(Amino* faltung)
-{
-	int maxY = 0;
-	int y = 0;
-
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		if(faltung[i].GetDir() == NORTH) y++;
-		else if(faltung[i].GetDir() == SOUTH) y--;
-
-		if(y > maxY) maxY = y;
-	}
-
-	return maxY;
-}
-//*/
