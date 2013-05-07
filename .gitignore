@@ -2,6 +2,7 @@
 *.slo
 *.lo
 *.o
+*.suo
 
 # Compiled Dynamic libraries
 *.so
@@ -16,3 +17,5 @@
 /GenePrak2/GenePrak2/Debug
 /GenePrak2/GenePrak2/GenePrak2.vcxproj.user
 /GenePrak2/GenePrak2/GenePrak2.vcxproj.filters
+
+/GenePrak2/GenePrak2.opensdf
