@@ -14,15 +14,15 @@ void sortHighscore(int, int*, Amino**);
 int identifier(int, Amino*);
 
 // Proteine
-/*
-const std::string PROT_1 = "1001001001001001001001";
-const int FALTUNG_LENGTH = 22;
-const int BEST_FITNESS = 99;
-//*/
 //*
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 9;
+//*/
+/*
+const std::string PROT_1 = "1001001001001001001001";
+const int FALTUNG_LENGTH = 22;
+const int BEST_FITNESS = 99;
 //*/
 /*
 const std::string PROT_1 = "0010011000011000011000011";
@@ -42,7 +42,7 @@ const int BEST_FITNESS = 99;
 /*
 const std::string PROT_1 = "11010101011110100010001000010001000101111010101011";
 const int FALTUNG_LENGTH = 50;
-const int BEST_FITNESS = 99;
+const int BEST_FITNESS = 20;
 //*/
 
 // Konfiguration der Population
