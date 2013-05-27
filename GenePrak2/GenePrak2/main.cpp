@@ -11,61 +11,112 @@ void show(Amino*);
 int fitness(Amino*);
 void mutate(Amino*, double);
 void sortHighscore(int, int*, Amino**);
-int identifier(int, Amino*);
+long identifier(int, Amino*);
 
-// Proteine
-//*
-const std::string PROT_1 = "10100110100101100101";
-const int FALTUNG_LENGTH = 20;
-const int BEST_FITNESS = 9;
-//*/
+
+#pragma region Proteine
 /*
 const std::string PROT_1 = "1001001001001001001001";
 const int FALTUNG_LENGTH = 22;
 const int BEST_FITNESS = 99;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 0;
+const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
-/*
+
+/*/*### PROTEIN 1 ######################################################
+const std::string PROT_1 = "10100110100101100101";
+const int FALTUNG_LENGTH = 20;
+const int BEST_FITNESS = 9;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 1000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 50;
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_TOLERANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+//*/
+
+/*### PROTEIN 2 ######################################################
 const std::string PROT_1 = "0010011000011000011000011";
 const int FALTUNG_LENGTH = 25;
 const int BEST_FITNESS = 7;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 5;
+const double MUTATION_RATE_TOLERANCE = 1; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
-/*
+
+//*### PROTEIN 3 ######################################################
 const std::string PROT_1 = "000110011000001111111001100001100100";
 const int FALTUNG_LENGTH = 36;
 const int BEST_FITNESS = 99;
+//const int BEST_FITNESS = 13; // Meistens
+//const int BEST_FITNESS = 14;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 200; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 8;
+const double MUTATION_RATE_TOLERANCE = 8; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
-/*
+
+/*### PROTEIN 4 ######################################################
 const std::string PROT_1 = "001001100110000011111111110000001100110010011111";
 const int FALTUNG_LENGTH = 48;
 const int BEST_FITNESS = 99;
+//const int BEST_FITNESS = 22;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 0;
+const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
-/*
+
+/*### PROTEIN 5 ######################################################
 const std::string PROT_1 = "11010101011110100010001000010001000101111010101011";
 const int FALTUNG_LENGTH = 50;
-const int BEST_FITNESS = 20;
-//*/
+const int BEST_FITNESS = 99;
+//const int BEST_FITNESS = 20;
 
-// Konfiguration der Population
+// Konfiguration
 const int AMOUNT_PROTEINS = 500;
-const int GENERATIONS = 1000;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 0;
+const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+//*/
+#pragma endregion
 
 // Anzahl der besten proteine, die unverändert in die nächste Generation übernommen werden
-const int ELITE_AMOUNT = 25;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 
 // Elite Auswahl wird nur einmal übernommen, danach nur dessen Mutationen
 const bool ELITE_ONLY_ONCE = true;
 
-double MUTATION_RATE = 50;
-
 // Die Senkung der Mutationsrate pro Generation
-double MUTATION_RATE_LOWER = 0.05;
-
-// Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
-const double MUTATION_RATE_TOLERANCE = 0;
+const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENERATION_WITH_LOWEST_MUATTION_RATE;
 
 // Anzeige
 int NUMBER_WIDTH = 3;
-bool SHOW_DETAILS = false;
+const bool SHOW_DETAILS = false;
+const bool SUCCESSES_ONLY = true;
 const int MATRIX_SIZE = 20;
 
 // Für Farbausgabe
@@ -73,13 +124,14 @@ HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
 
 void main()
 {
+	#pragma region Initialisierung und mehr
 	time_t t;
     time(&t);
     srand((unsigned int)t);
 
 	std::list<Amino*> populations = std::list<Amino*>();
 	Amino* eliteProteins[ELITE_AMOUNT];
-	
+
 	// Ausgangsprotein
 	Amino* proteinToCopy = new Amino[FALTUNG_LENGTH];
 
@@ -101,9 +153,10 @@ void main()
 	std::cout << " Best";
 	std::cout << " Mut. Rate";
 	std::cout << std::endl;
+	#pragma endregion
 
-	// Population generieren
-	std::cout << std::setw(6) << std::right << "Gen    1 -> ";
+	#pragma region Population generieren
+	if(!SUCCESSES_ONLY) std::cout << std::setw(6) << std::right << "Gen    1 -> ";
 	for(int i = 0; i<AMOUNT_PROTEINS; i++)
 	{
 		Amino* addMe = new Amino[FALTUNG_LENGTH];
@@ -122,8 +175,9 @@ void main()
 	}
 
 	std::cout << std::endl;
-
-	// Alle Proteine durchgehen
+	#pragma endregion
+	
+	#pragma region In allen Generationen, alle Proteine durchgehen
 	Amino* bestProtein = new Amino[FALTUNG_LENGTH];
 	int bestProtein_fitness = -1;
 	int bestProtein_round= -1;
@@ -131,9 +185,26 @@ void main()
 	Amino* scores_values[AMOUNT_PROTEINS];
 	for(int i = 0; i<GENERATIONS; i++)
 	{
-		std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> ";
+		bool showRow = !SUCCESSES_ONLY || i%500 == 0;
+
+		if(showRow) std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> ";
 
 		#pragma region Mutieren
+		double mutation_rate = MUTATION_RATE;
+
+		// Toleranz in Mutationsrate einbauen
+		double tolerance = 0;
+		if(MUTATION_RATE_TOLERANCE != 0)
+		{
+			// Auf Mutation die Toleranz dazurechnen
+			tolerance = (rand() % (int)(MUTATION_RATE_TOLERANCE * 10000) - (MUTATION_RATE_TOLERANCE/2.0 * 10000)) / 10000.0;
+
+			mutation_rate += tolerance;
+				
+			// Auf Grenzen achten
+			if(mutation_rate < MUTATION_RATE_LOWEST) mutation_rate = MUTATION_RATE_LOWEST;
+		}
+
 		// Mutieren lassen und Besten suchen
 		std::list<Amino*>::iterator iter;
 		double generationAverage = 0;
@@ -141,7 +212,7 @@ void main()
 		for (iter = populations.begin(); iter != populations.end(); ++iter)
 		{
 			// Mutieren (aber nicht die "Elite", die bleibt bestehen)
-			if(count >= ELITE_AMOUNT) mutate(*iter, MUTATION_RATE);
+			if(count >= ELITE_AMOUNT) mutate(*iter, mutation_rate);
 
 			// Fitness ausrechnen
 			int f = fitness(*iter);
@@ -156,14 +227,6 @@ void main()
 				scores[count] = f;
 				scores_values[count] = *iter;
 			}
-
-			/*/ Prüfen, ob es der Geneerationsbeste ist
-			if(f > bestGenerationProtein_fitness)
-			{
-				bestGenerationProtein_fitness = f;
-				bestGenerationProtein = *iter;
-			}
-			//*/
 
 			// Fortlaufender index;
 			count++;
@@ -190,7 +253,7 @@ void main()
 				if(f == -1) SetConsoleTextAttribute(hstdout, 0x0c);
 				else if(*iter == bestGenerationProtein) SetConsoleTextAttribute(hstdout, 0xa0);
 
-				std::cout << std::setw(NUMBER_WIDTH) << std::right << f;
+				if(showRow) std::cout << std::setw(NUMBER_WIDTH) << std::right << f;
 			
 				SetConsoleTextAttribute(hstdout, 0x0f);
 			}
@@ -208,26 +271,31 @@ void main()
 		}
 
 		// Auswertung anzeigen
-		std::cout << " |" << std::setw(5) << generationAverage;
-		
-		std::cout << std::setw(5) << bestGenerationProtein_fitness;
-		
-		if(isNewBest) SetConsoleTextAttribute(hstdout, 0xa0);
-		std::cout << std::setw(5) << bestProtein_fitness;
-		SetConsoleTextAttribute(hstdout, 0x0f);
+		if(!showRow && isNewBest) std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> "; // Wenn SUCCESSES_ONLY, dann hier einen Ersatz anzeigen
 
-		std::cout << std::setw(10) << MUTATION_RATE;
+		if(showRow || isNewBest)
+		{
+			std::cout << " |" << std::setw(5) << generationAverage;
+		
+			std::cout << std::setw(5) << bestGenerationProtein_fitness;
+		
+			if(isNewBest) SetConsoleTextAttribute(hstdout, 0xa0);
+			std::cout << std::setw(5) << bestProtein_fitness;
+			SetConsoleTextAttribute(hstdout, 0x0f);
 
-		std::cout << std::endl;
+			std::cout << std::setw(10) << MUTATION_RATE;
+
+			std::cout << std::endl;
+		}
 		#pragma endregion
 		
 		#pragma region Selektion
-		// 5 Elite-Proteine wählen, die nicht gleich sind
+		// X Elite-Proteine wählen, die nicht gleich sind
 		std::list<int> proteinIds = std::list<int>();
 		for(int i = 0; i<AMOUNT_PROTEINS - ELITE_AMOUNT; i++)
 		{
 			// Id des Proteins bilden
-			int id = identifier(FALTUNG_LENGTH, scores_values[i]);
+			long id = identifier(FALTUNG_LENGTH, scores_values[i]);
 			
 			// Wenn Protein noch nicht in Liste vorhanden, dann hinzufügen
 			std::list<int>::iterator findIter = std::find(proteinIds.begin(), proteinIds.end(), id);
@@ -241,13 +309,13 @@ void main()
 			if(proteinIds.size() == ELITE_AMOUNT) break;
 		}
 
-		// Wenn zu wenig Elite Proteine vorhanden, dann Rest mit BEstem Protein auffüllen
+		// Wenn zu wenig Elite Proteine vorhanden, dann Rest mit Bestem Protein auffüllen
 		if(proteinIds.size() < ELITE_AMOUNT)
 		{
 			for(int i = proteinIds.size(); i<ELITE_AMOUNT; i++) eliteProteins[i] = scores_values[0];
 		}
 
-		//int circle = 0;
+		// Neue Population generieren
 		std::list<Amino*> newPopulation = std::list<Amino*>();
 		for(int i = 0; i<AMOUNT_PROTEINS; i++)
 		{
@@ -258,14 +326,6 @@ void main()
 			memcpy(newProt, eliteProteins[copyFrom], FALTUNG_LENGTH * sizeof(*newProt));
 
 			newPopulation.push_back(newProt);
-			/*
-			int f = fitness(*iter);
-
-			if(f == -1)
-			{
-				memcpy(*iter, scores_values[circle++ % 4], FALTUNG_LENGTH * sizeof(*bestProtein));
-			}
-			//*/
 		}
 
 		populations = newPopulation;
@@ -276,10 +336,14 @@ void main()
 
 		// Mutationsrate senken
 		MUTATION_RATE -= MUTATION_RATE_LOWER;
+
+		if(MUTATION_RATE < MUTATION_RATE_LOWEST) MUTATION_RATE = MUTATION_RATE_LOWEST;
 	}
 	
 	std::cout << std::endl;
+	#pragma endregion
 
+	#pragma region Ausgabe des Highscores
 	SetConsoleTextAttribute(hstdout, 0x70);
 	std::cout << std::setw(80) << std::left << " Highscore" << std::endl;
 	SetConsoleTextAttribute(hstdout, 0x0f);
@@ -291,20 +355,11 @@ void main()
 		std::cout << "Rank " << (i+1) << " (Fitness: " << f << ", Id: " << id << ")" << std::endl;
 		show(eliteProteins[i]);
 	}
-
-	//system("PAUSE");
+	#pragma endregion
 }
 
 void mutate(Amino* faltung, double mutationRate)
 {
-	if(MUTATION_RATE_TOLERANCE != 0)
-	{
-		// Auf Mutation die Toleranz dazurechnen
-		double tolerance = (rand() % (int)(MUTATION_RATE_TOLERANCE * 20000) - 10000) / 20000.0;
-
-		mutationRate += tolerance;
-	}
-
 	// Anzahl der Mutationen berechnen
 	int mutations = (mutationRate / 100.0) * FALTUNG_LENGTH;
 
@@ -337,7 +392,7 @@ void mutate(Amino* faltung, double mutationRate)
 }
 
 // Generates a number, that identifies a protein
-int identifier(int length, Amino* protein)
+long identifier(int length, Amino* protein)
 {
 	int id = 0;
 
@@ -351,8 +406,12 @@ int identifier(int length, Amino* protein)
 		
 		if(protein[i].IsHydrophob()) aminoId += 3;
 
-		id << 3;
+		//*
+		id += aminoId * (i+1) * 100;
+		/*/
+		id = id << 3;
 		id += aminoId;
+		//*/
 	}
 
 	return id;
