@@ -5,31 +5,17 @@
 #include "Amino.h"
 #include <list>
 #include <iomanip>
+#include <string>
 #include <windows.h>
 
 void show(Amino*);
 int fitness(Amino*);
 void mutate(Amino*, double);
 void sortHighscore(int, int*, Amino**);
-long identifier(int, Amino*);
-
+std::string identifier(int, Amino*);
 
 #pragma region Proteine
-/*
-const std::string PROT_1 = "1001001001001001001001";
-const int FALTUNG_LENGTH = 22;
-const int BEST_FITNESS = 99;
-
-// Konfiguration
-const int AMOUNT_PROTEINS = 500;
-const int GENERATIONS = 5000;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
-double MUTATION_RATE = 75;
-const double MUTATION_RATE_LOWEST = 0;
-const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
-//*/
-
-/*/*### PROTEIN 1 ######################################################
+/*### PROTEIN 1 ######################################################
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 9;
@@ -40,24 +26,39 @@ const int GENERATIONS = 1000;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
-const double MUTATION_RATE_TOLERANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 
-/*### PROTEIN 2 ######################################################
-const std::string PROT_1 = "0010011000011000011000011";
-const int FALTUNG_LENGTH = 25;
-const int BEST_FITNESS = 7;
+//*### PROTEIN 2 ######################################################
+const std::string PROT_1 = "110010010010010010010011";
+const int FALTUNG_LENGTH = 24;
+//const int BEST_FITNESS = 9;
+const int BEST_FITNESS = 99;
 
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
-const double MUTATION_RATE_LOWEST = 5;
-const double MUTATION_RATE_TOLERANCE = 1; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 
-//*### PROTEIN 3 ######################################################
+/*### PROTEIN 3 ######################################################
+const std::string PROT_1 = "0010011000011000011000011";
+const int FALTUNG_LENGTH = 25;
+const int BEST_FITNESS = 8;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 75;
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+//*/
+
+/*### PROTEIN 4 ######################################################
 const std::string PROT_1 = "000110011000001111111001100001100100";
 const int FALTUNG_LENGTH = 36;
 const int BEST_FITNESS = 99;
@@ -69,11 +70,11 @@ const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 200; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
-const double MUTATION_RATE_LOWEST = 8;
-const double MUTATION_RATE_TOLERANCE = 8; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 8; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 
-/*### PROTEIN 4 ######################################################
+/*### PROTEIN 5 ######################################################
 const std::string PROT_1 = "001001100110000011111111110000001100110010011111";
 const int FALTUNG_LENGTH = 48;
 const int BEST_FITNESS = 99;
@@ -85,22 +86,22 @@ const int GENERATIONS = 5000;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 0;
-const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+const double MUTATION_RATE_VARIANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 
-/*### PROTEIN 5 ######################################################
+/*### PROTEIN 6 ######################################################
 const std::string PROT_1 = "11010101011110100010001000010001000101111010101011";
 const int FALTUNG_LENGTH = 50;
 const int BEST_FITNESS = 99;
-//const int BEST_FITNESS = 20;
+//const int BEST_FITNESS = 21;
 
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
-const double MUTATION_RATE_LOWEST = 0;
-const double MUTATION_RATE_TOLERANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 #pragma endregion
 
@@ -109,6 +110,9 @@ const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 
 // Elite Auswahl wird nur einmal übernommen, danach nur dessen Mutationen
 const bool ELITE_ONLY_ONCE = true;
+
+// Doppelete erlauben
+const bool ALLOW_DOUBLES = false;
 
 // Die Senkung der Mutationsrate pro Generation
 const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENERATION_WITH_LOWEST_MUATTION_RATE;
@@ -194,10 +198,10 @@ void main()
 
 		// Toleranz in Mutationsrate einbauen
 		double tolerance = 0;
-		if(MUTATION_RATE_TOLERANCE != 0)
+		if(MUTATION_RATE_VARIANCE != 0)
 		{
 			// Auf Mutation die Toleranz dazurechnen
-			tolerance = (rand() % (int)(MUTATION_RATE_TOLERANCE * 10000) - (MUTATION_RATE_TOLERANCE/2.0 * 10000)) / 10000.0;
+			tolerance = (rand() % (int)(MUTATION_RATE_VARIANCE * 10000) - (MUTATION_RATE_VARIANCE/2.0 * 10000)) / 10000.0;
 
 			mutation_rate += tolerance;
 				
@@ -291,22 +295,26 @@ void main()
 		
 		#pragma region Selektion
 		// X Elite-Proteine wählen, die nicht gleich sind
-		std::list<int> proteinIds = std::list<int>();
+		std::list<std::string> proteinIds = std::list<std::string>();
 		for(int i = 0; i<AMOUNT_PROTEINS - ELITE_AMOUNT; i++)
 		{
 			// Id des Proteins bilden
-			long id = identifier(FALTUNG_LENGTH, scores_values[i]);
+			std::string id = identifier(FALTUNG_LENGTH, scores_values[i]);
 			
 			// Wenn Protein noch nicht in Liste vorhanden, dann hinzufügen
-			std::list<int>::iterator findIter = std::find(proteinIds.begin(), proteinIds.end(), id);
-			if(findIter == proteinIds.end())
+			if(!ALLOW_DOUBLES)
 			{
-				eliteProteins[proteinIds.size()] = scores_values[i];
-				proteinIds.push_back(id);
-			}
+				std::list<std::string>::iterator findIter = std::find(proteinIds.begin(), proteinIds.end(), id);
+				if(findIter == proteinIds.end())
+				{
+					eliteProteins[proteinIds.size()] = scores_values[i];
+					proteinIds.push_back(id);
+				}
 
-			// Wenn Liste voll, dann abbrechen
-			if(proteinIds.size() == ELITE_AMOUNT) break;
+				// Wenn Liste voll, dann abbrechen
+				if(proteinIds.size() == ELITE_AMOUNT) break;
+			}
+			else eliteProteins[proteinIds.size()] = scores_values[i];;
 		}
 
 		// Wenn zu wenig Elite Proteine vorhanden, dann Rest mit Bestem Protein auffüllen
@@ -351,7 +359,7 @@ void main()
 	for(int i = 0; i<ELITE_AMOUNT && i<5; i++)
 	{
 		int f = fitness(eliteProteins[i]);
-		int id = identifier(FALTUNG_LENGTH, eliteProteins[i]);
+		std::string id = identifier(FALTUNG_LENGTH, eliteProteins[i]);
 		std::cout << "Rank " << (i+1) << " (Fitness: " << f << ", Id: " << id << ")" << std::endl;
 		show(eliteProteins[i]);
 	}
@@ -392,8 +400,9 @@ void mutate(Amino* faltung, double mutationRate)
 }
 
 // Generates a number, that identifies a protein
-long identifier(int length, Amino* protein)
+std::string identifier(int length, Amino* protein)
 {
+	/*
 	int id = 0;
 
 	for(int i = 0; i<length; i++)
@@ -404,14 +413,25 @@ long identifier(int length, Amino* protein)
 		else if(protein[i].GetDir() == FORWARD) aminoId = 1;
 		else if(protein[i].GetDir() == RIGHT) aminoId = 2;
 		
-		if(protein[i].IsHydrophob()) aminoId += 3;
+		///id += aminoId * (i+1) * 100;
 
-		//*
-		id += aminoId * (i+1) * 100;
-		/*/
-		id = id << 3;
+		id = id << 2;
 		id += aminoId;
-		//*/
+	}
+
+	return id;
+	//*/
+	std::string id = "00000000000000000000000000000000000000000000000000";
+
+	for(int i = 0; i<length; i++)
+	{
+		char aminoId = '0';
+		
+		if(protein[i].GetDir() == LEFT) aminoId = '0';
+		else if(protein[i].GetDir() == FORWARD) aminoId = '1';
+		else if(protein[i].GetDir() == RIGHT) aminoId = '2';
+		
+		id[i] = aminoId;
 	}
 
 	return id;
