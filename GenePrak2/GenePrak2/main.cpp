@@ -15,6 +15,20 @@ void sortHighscore(int, int*, Amino**);
 std::string identifier(int, Amino*);
 
 #pragma region Proteine
+//*### Testprotein ######################################################
+const std::string PROT_1 = "10100110100101100101";
+const int FALTUNG_LENGTH = 20;
+const int BEST_FITNESS = 999;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 10;
+const int GENERATIONS = 50;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 50; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 50;
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+//*/
+
 /*### PROTEIN 1 ######################################################
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
@@ -29,7 +43,7 @@ const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 //*/
 
-//*### PROTEIN 2 ######################################################
+/*### PROTEIN 2 ######################################################
 const std::string PROT_1 = "110010010010010010010011";
 const int FALTUNG_LENGTH = 24;
 //const int BEST_FITNESS = 9;
@@ -106,10 +120,11 @@ const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wievi
 #pragma endregion
 
 // Anzahl der besten proteine, die unverändert in die nächste Generation übernommen werden
-const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
+//const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
+const int ELITE_AMOUNT = 3;
 
 // Elite Auswahl wird nur einmal übernommen, danach nur dessen Mutationen
-const bool ELITE_ONLY_ONCE = true;
+const bool ELITE_ONLY_ONCE = false;
 
 // Doppelete erlauben
 const bool ALLOW_DOUBLES = false;
@@ -119,8 +134,7 @@ const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENE
 
 // Anzeige
 int NUMBER_WIDTH = 3;
-const bool SHOW_DETAILS = false;
-const bool SUCCESSES_ONLY = true;
+const bool SHOW_DETAILS = true;
 const int MATRIX_SIZE = 20;
 
 // Für Farbausgabe
@@ -160,7 +174,7 @@ void main()
 	#pragma endregion
 
 	#pragma region Population generieren
-	if(!SUCCESSES_ONLY) std::cout << std::setw(6) << std::right << "Gen    1 -> ";
+	if(SHOW_DETAILS) std::cout << std::setw(6) << std::right << "Gen    1 -> ";
 	for(int i = 0; i<AMOUNT_PROTEINS; i++)
 	{
 		Amino* addMe = new Amino[FALTUNG_LENGTH];
@@ -189,7 +203,7 @@ void main()
 	Amino* scores_values[AMOUNT_PROTEINS];
 	for(int i = 0; i<GENERATIONS; i++)
 	{
-		bool showRow = !SUCCESSES_ONLY || i%500 == 0;
+		bool showRow = SHOW_DETAILS || i%500 == 0;
 
 		if(showRow) std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> ";
 
@@ -225,11 +239,11 @@ void main()
 			generationAverage += (f == -1 ? 0 : f);
 
 			// Die Elite nicht in den Highscore (und damit in die nächste Generation übernehemen)
-			if(count >= ELITE_AMOUNT || !ELITE_ONLY_ONCE)
+			if(!ELITE_ONLY_ONCE || count >= ELITE_AMOUNT)
 			{
 				// Fitness zu Highscore Array hinzufügen
-				scores[count] = f;
-				scores_values[count] = *iter;
+				scores[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = f;
+				scores_values[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = *iter;
 			}
 
 			// Fortlaufender index;
@@ -237,7 +251,7 @@ void main()
 		}
 
 		// Highscore sortieren
-		sortHighscore(AMOUNT_PROTEINS, scores, scores_values);
+		sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), scores, scores_values);
 
 		// Auswerten, welches bestes Protein ist
 		int bestGenerationProtein_fitness = scores[0];
