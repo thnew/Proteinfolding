@@ -78,9 +78,11 @@
   <ItemGroup>
     <ClCompile Include="Amino.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Protein.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Amino.h" />
+    <ClInclude Include="Protein.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

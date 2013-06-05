@@ -2,34 +2,34 @@
 #include <Exception>
 #include <cmath>
 #include <stdlib.h>
+#include "Protein.h"
 #include "Amino.h"
 #include <list>
 #include <iomanip>
 #include <string>
 #include <windows.h>
 
-void show(Amino*);
-int fitness(Amino*);
-void mutate(Amino*, double);
-void sortHighscore(int, int*, Amino**);
-std::string identifier(int, Amino*);
+void sortHighscore(int, Protein**);
 
 #pragma region Proteine
-//*### Testprotein ######################################################
+/*### Testprotein ######################################################
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 999;
 
 // Konfiguration
 const int AMOUNT_PROTEINS = 10;
-const int GENERATIONS = 50;
+const int GENERATIONS = 100;
+const int ELITE_AMOUNT = 3;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 50; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = true;
 //*/
 
-/*### PROTEIN 1 ######################################################
+//*### PROTEIN 1 ######################################################
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 9;
@@ -37,10 +37,13 @@ const int BEST_FITNESS = 9;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 1000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 
 /*### PROTEIN 2 ######################################################
@@ -52,10 +55,13 @@ const int BEST_FITNESS = 99;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 
 /*### PROTEIN 3 ######################################################
@@ -66,10 +72,13 @@ const int BEST_FITNESS = 8;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 
 /*### PROTEIN 4 ######################################################
@@ -82,10 +91,13 @@ const int BEST_FITNESS = 99;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 200; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 8; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 
 /*### PROTEIN 5 ######################################################
@@ -97,10 +109,13 @@ const int BEST_FITNESS = 99;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 0;
 const double MUTATION_RATE_VARIANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 
 /*### PROTEIN 6 ######################################################
@@ -112,16 +127,31 @@ const int BEST_FITNESS = 99;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
+//*/
+/*### PROTEIN 100er ######################################################
+const std::string PROT_1 = "0001100111100111011011011110000000011111100111111000000000101101111111111100111011010010111000000111";
+const int FALTUNG_LENGTH = 100;
+const int BEST_FITNESS = 50;
+
+// Konfiguration
+const int AMOUNT_PROTEINS = 500;
+const int GENERATIONS = 5000;
+const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
+const double GENERATION_WITH_LOWEST_MUATTION_RATE = 500; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+double MUTATION_RATE = 50;
+const double MUTATION_RATE_LOWEST = 10;
+const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
+
+const bool SHOW_DETAILS = false;
 //*/
 #pragma endregion
-
-// Anzahl der besten proteine, die unverändert in die nächste Generation übernommen werden
-//const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const int ELITE_AMOUNT = 3;
 
 // Elite Auswahl wird nur einmal übernommen, danach nur dessen Mutationen
 const bool ELITE_ONLY_ONCE = false;
@@ -134,8 +164,6 @@ const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENE
 
 // Anzeige
 int NUMBER_WIDTH = 3;
-const bool SHOW_DETAILS = true;
-const int MATRIX_SIZE = 20;
 
 // Für Farbausgabe
 HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -147,16 +175,11 @@ void main()
     time(&t);
     srand((unsigned int)t);
 
-	std::list<Amino*> populations = std::list<Amino*>();
-	Amino* eliteProteins[ELITE_AMOUNT];
+	std::list<Protein*> populations = std::list<Protein*>();
+	Protein* eliteProteins[ELITE_AMOUNT];
 
 	// Ausgangsprotein
-	Amino* proteinToCopy = new Amino[FALTUNG_LENGTH];
-
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		proteinToCopy[i] = Amino(FORWARD, PROT_1[i] == 49);
-	}
+	Protein* proteinToCopy = new Protein(PROT_1);
 
 	// Titel
 	SetConsoleTextAttribute(hstdout, 0x1f);
@@ -177,14 +200,13 @@ void main()
 	if(SHOW_DETAILS) std::cout << std::setw(6) << std::right << "Gen    1 -> ";
 	for(int i = 0; i<AMOUNT_PROTEINS; i++)
 	{
-		Amino* addMe = new Amino[FALTUNG_LENGTH];
-
 		// Ausgangsprotein kopieren
-		memcpy(addMe, proteinToCopy, FALTUNG_LENGTH * sizeof(*proteinToCopy));
+		Protein* addMe = new Protein(FALTUNG_LENGTH);
+		addMe = proteinToCopy->Copy();
 
 		if(SHOW_DETAILS)
 		{
-			int f = fitness(addMe);
+			int f = addMe->CalcFitness();
 			
 			std::cout << std::setw(NUMBER_WIDTH) << std::right << f;
 		}
@@ -196,11 +218,9 @@ void main()
 	#pragma endregion
 	
 	#pragma region In allen Generationen, alle Proteine durchgehen
-	Amino* bestProtein = new Amino[FALTUNG_LENGTH];
-	int bestProtein_fitness = -1;
+	Protein* bestProtein = new Protein(0);
 	int bestProtein_round= -1;
-	int scores[AMOUNT_PROTEINS];
-	Amino* scores_values[AMOUNT_PROTEINS];
+	Protein* highscore[AMOUNT_PROTEINS];
 	for(int i = 0; i<GENERATIONS; i++)
 	{
 		bool showRow = SHOW_DETAILS || i%500 == 0;
@@ -208,54 +228,49 @@ void main()
 		if(showRow) std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> ";
 
 		#pragma region Mutieren
-		double mutation_rate = MUTATION_RATE;
-
-		// Toleranz in Mutationsrate einbauen
-		double tolerance = 0;
-		if(MUTATION_RATE_VARIANCE != 0)
-		{
-			// Auf Mutation die Toleranz dazurechnen
-			tolerance = (rand() % (int)(MUTATION_RATE_VARIANCE * 10000) - (MUTATION_RATE_VARIANCE/2.0 * 10000)) / 10000.0;
-
-			mutation_rate += tolerance;
-				
-			// Auf Grenzen achten
-			if(mutation_rate < MUTATION_RATE_LOWEST) mutation_rate = MUTATION_RATE_LOWEST;
-		}
 
 		// Mutieren lassen und Besten suchen
-		std::list<Amino*>::iterator iter;
+		std::list<Protein*>::iterator iter;
 		double generationAverage = 0;
 		int count = 0;
 		for (iter = populations.begin(); iter != populations.end(); ++iter)
 		{
+			double mutation_rate = MUTATION_RATE;
+
+			// Toleranz in Mutationsrate einbauen
+			double tolerance = 0;
+			if(MUTATION_RATE_VARIANCE != 0)
+			{
+				// Auf Mutation die Toleranz dazurechnen
+				tolerance = (rand() % (int)(MUTATION_RATE_VARIANCE * 10000) - (MUTATION_RATE_VARIANCE/2.0 * 10000)) / 10000.0;
+
+				mutation_rate += tolerance;
+				
+				// Auf Grenzen achten
+				if(mutation_rate < MUTATION_RATE_LOWEST) mutation_rate = MUTATION_RATE_LOWEST;
+			}
+
 			// Mutieren (aber nicht die "Elite", die bleibt bestehen)
-			if(count >= ELITE_AMOUNT) mutate(*iter, mutation_rate);
+			if(count >= ELITE_AMOUNT) (*iter)->Mutate(mutation_rate);
 
 			// Fitness ausrechnen
-			int f = fitness(*iter);
+			int f = (*iter)->CalcFitness();
 
 			// Fitness in die Durschnittsrechnung einrechnen
 			generationAverage += (f == -1 ? 0 : f);
 
 			// Die Elite nicht in den Highscore (und damit in die nächste Generation übernehemen)
-			if(!ELITE_ONLY_ONCE || count >= ELITE_AMOUNT)
-			{
-				// Fitness zu Highscore Array hinzufügen
-				scores[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = f;
-				scores_values[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = *iter;
-			}
+			if(!ELITE_ONLY_ONCE || count >= ELITE_AMOUNT) highscore[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = *iter;
 
 			// Fortlaufender index;
 			count++;
 		}
 
 		// Highscore sortieren
-		sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), scores, scores_values);
+		sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), highscore);
 
 		// Auswerten, welches bestes Protein ist
-		int bestGenerationProtein_fitness = scores[0];
-		Amino* bestGenerationProtein = scores_values[0];
+		Protein* bestGenerationProtein = highscore[0];
 
 		// Durschnittsrechnung abschließen
 		generationAverage = ceil(generationAverage / populations.size() * 10) / 10.0;
@@ -266,7 +281,7 @@ void main()
 		{
 			for (iter = populations.begin(); iter != populations.end(); ++iter)
 			{
-				int f = fitness(*iter);
+				int f = (*iter)->CalcFitness();
 
 				if(f == -1) SetConsoleTextAttribute(hstdout, 0x0c);
 				else if(*iter == bestGenerationProtein) SetConsoleTextAttribute(hstdout, 0xa0);
@@ -279,12 +294,12 @@ void main()
 		#pragma endregion
 		
 		#pragma region Auswerten, welches bestes Protein ist
-		bool isNewBest = (bestGenerationProtein_fitness > bestProtein_fitness); 
+		bool isNewBest = (bestGenerationProtein->CalcFitness() > bestProtein->CalcFitness()); 
 		
 		if(isNewBest)
 		{
-			memcpy(bestProtein, bestGenerationProtein, FALTUNG_LENGTH * sizeof(*bestGenerationProtein));
-			bestProtein_fitness = bestGenerationProtein_fitness;
+			bestProtein = bestGenerationProtein;
+			
 			bestProtein_round = i + 2;
 		}
 
@@ -295,10 +310,10 @@ void main()
 		{
 			std::cout << " |" << std::setw(5) << generationAverage;
 		
-			std::cout << std::setw(5) << bestGenerationProtein_fitness;
+			std::cout << std::setw(5) << bestGenerationProtein->CalcFitness();
 		
 			if(isNewBest) SetConsoleTextAttribute(hstdout, 0xa0);
-			std::cout << std::setw(5) << bestProtein_fitness;
+			std::cout << std::setw(5) << bestProtein->CalcFitness();
 			SetConsoleTextAttribute(hstdout, 0x0f);
 
 			std::cout << std::setw(10) << MUTATION_RATE;
@@ -313,7 +328,7 @@ void main()
 		for(int i = 0; i<AMOUNT_PROTEINS - ELITE_AMOUNT; i++)
 		{
 			// Id des Proteins bilden
-			std::string id = identifier(FALTUNG_LENGTH, scores_values[i]);
+			std::string id = highscore[i]->Identifier();
 			
 			// Wenn Protein noch nicht in Liste vorhanden, dann hinzufügen
 			if(!ALLOW_DOUBLES)
@@ -321,40 +336,40 @@ void main()
 				std::list<std::string>::iterator findIter = std::find(proteinIds.begin(), proteinIds.end(), id);
 				if(findIter == proteinIds.end())
 				{
-					eliteProteins[proteinIds.size()] = scores_values[i];
+					eliteProteins[proteinIds.size()] = highscore[i];
 					proteinIds.push_back(id);
 				}
 
 				// Wenn Liste voll, dann abbrechen
 				if(proteinIds.size() == ELITE_AMOUNT) break;
 			}
-			else eliteProteins[proteinIds.size()] = scores_values[i];;
+			else eliteProteins[proteinIds.size()] = highscore[i];
 		}
 
 		// Wenn zu wenig Elite Proteine vorhanden, dann Rest mit Bestem Protein auffüllen
 		if(proteinIds.size() < ELITE_AMOUNT)
 		{
-			for(int i = proteinIds.size(); i<ELITE_AMOUNT; i++) eliteProteins[i] = scores_values[0];
+			for(int i = proteinIds.size(); i<ELITE_AMOUNT; i++) eliteProteins[i] = highscore[0];
 		}
 
 		// Neue Population generieren
-		std::list<Amino*> newPopulation = std::list<Amino*>();
+		std::list<Protein*> newPopulation = std::list<Protein*>();
 		for(int i = 0; i<AMOUNT_PROTEINS; i++)
 		{
 			// Wenn es eine Elite gibt, dann aus dieser die zu Übernehmenden wählen
 			int copyFrom = (ELITE_AMOUNT != 0 ? (i % ELITE_AMOUNT) : i);
 
-			Amino* newProt = new Amino[FALTUNG_LENGTH];
-			memcpy(newProt, eliteProteins[copyFrom], FALTUNG_LENGTH * sizeof(*newProt));
-
-			newPopulation.push_back(newProt);
+			// Die Elite Proteine werden unverändert weitergegeben
+			if(i < ELITE_AMOUNT) newPopulation.push_back(eliteProteins[copyFrom]);
+			// Die restlichen werden kopiert und gespeichert
+			else newPopulation.push_back(eliteProteins[copyFrom]->Copy());
 		}
 
 		populations = newPopulation;
 		#pragma endregion
 
 		// Wenn Maximum erreicht, dann abbrechen
-		if(bestProtein_fitness == BEST_FITNESS) break;
+		if(bestProtein->CalcFitness() == BEST_FITNESS) break;
 
 		// Mutationsrate senken
 		MUTATION_RATE -= MUTATION_RATE_LOWER;
@@ -372,366 +387,28 @@ void main()
 	std::cout << "Best protein reached in generation " << bestProtein_round << std::endl;
 	for(int i = 0; i<ELITE_AMOUNT && i<5; i++)
 	{
-		int f = fitness(eliteProteins[i]);
-		std::string id = identifier(FALTUNG_LENGTH, eliteProteins[i]);
+		int f = eliteProteins[i]->CalcFitness();
+		std::string id = eliteProteins[i]->Identifier();
 		std::cout << "Rank " << (i+1) << " (Fitness: " << f << ", Id: " << id << ")" << std::endl;
-		show(eliteProteins[i]);
+		eliteProteins[i]->Show();
 	}
 	#pragma endregion
 }
 
-void mutate(Amino* faltung, double mutationRate)
+void sortHighscore(int length, Protein** sortMe)
 {
-	// Anzahl der Mutationen berechnen
-	int mutations = (mutationRate / 100.0) * FALTUNG_LENGTH;
-
-	// Verhindern, dass Mutationsrate so klein ist, dass gar keine Mutataion mehr stattfindet
-	mutations = (mutations < 1 ? 1 : mutations);
-
-	for(int i=0; i<mutations; i++)
-	{
-		// Nach Zufall eine Aminosäure ermitteln
-		int randAmino = rand() % FALTUNG_LENGTH;
-	
-		// so lange eine neue zufällige Richtung ermitteln, bis eine NEUE Richtung ermittelt wurde
-		int randDir;
-		do
-		{
-			randDir = rand() % 3;
-
-			// Zufallszahl in die Richtung aus dem enum umwandeln
-			switch(randDir)
-			{
-				case 0: randDir = FORWARD; break;
-				case 1: randDir = LEFT; break;
-				case 2: randDir = RIGHT; break;
-			}
-		} while(randDir == faltung[randAmino].GetDir());
-
-		// Richtung in der Aminosäure setzen
-		faltung[randAmino].SetDir((Direction)randDir);
-	}
-}
-
-// Generates a number, that identifies a protein
-std::string identifier(int length, Amino* protein)
-{
-	/*
-	int id = 0;
-
-	for(int i = 0; i<length; i++)
-	{
-		int aminoId = 0;
-		
-		if(protein[i].GetDir() == LEFT) aminoId = 0;
-		else if(protein[i].GetDir() == FORWARD) aminoId = 1;
-		else if(protein[i].GetDir() == RIGHT) aminoId = 2;
-		
-		///id += aminoId * (i+1) * 100;
-
-		id = id << 2;
-		id += aminoId;
-	}
-
-	return id;
-	//*/
-	std::string id = "00000000000000000000000000000000000000000000000000";
-
-	for(int i = 0; i<length; i++)
-	{
-		char aminoId = '0';
-		
-		if(protein[i].GetDir() == LEFT) aminoId = '0';
-		else if(protein[i].GetDir() == FORWARD) aminoId = '1';
-		else if(protein[i].GetDir() == RIGHT) aminoId = '2';
-		
-		id[i] = aminoId;
-	}
-
-	return id;
-}
-
-void sortHighscore(int length, int* scores, Amino** score_values)
-{
-	int temp;
-	Amino* temp_amino;
+	Protein* temp_protein;
    
 	for(int i=0; i<length; i++)
 	{
 		for(int j=0; j<length-1; j++)
 		{
-			if(scores[j] < scores[j+1])
+			if(sortMe[j]->CalcFitness() < sortMe[j+1]->CalcFitness())
 			{
-				temp = scores[j];
-				scores[j] = scores[j+1];
-				scores[j+1] = temp;
-
-				temp_amino = score_values[j];
-				score_values[j] = score_values[j+1];
-				score_values[j+1] = temp_amino;
+				temp_protein = sortMe[j];
+				sortMe[j] = sortMe[j+1];
+				sortMe[j+1] = temp_protein;
 			}
 		}
 	}
-}
-
-int fitness(Amino* faltung)
-{
-	int x, y;
-	const int width = MATRIX_SIZE;
-	const int height = MATRIX_SIZE;
-	int matrix[width][height];
-	int startX = width / 2, startY = height / 2;
-
-	int connections = 0;
-	int directConnections = 0;
-	bool lastIsHydrophob = false;
-
-	try
-	{
-		#pragma region Initialisierung
-		// Alle Felder mit -1 (==leer) initialisieren
-		for(int x = 0; x<height; x++)
-		{
-			for(int y = 0; y<width; y++)
-			{
-				matrix[x][y] = -1;
-			}
-		}
-
-		// Anfangskoordinaten setzen
-		x = startX;
-		y = startY;
-		#pragma endregion
-
-		#pragma region Aminos in Matrix eintragen
-		int dir = NORTH;
-		int maxX = startX, minX = startX, maxY = startY, minY= startY;
-		for(int i = 0; i<FALTUNG_LENGTH; i++)
-		{
-			Amino* amino = &faltung[i];
-
-			// Die richtige Himmelsrichtung einschlagen
-			switch(amino->GetDir())
-			{
-				// Bei Vorwärts ändert sich nichts
-				case FORWARD: break;
-				// Ansonsten ändert sich die Richtung
-				case LEFT: dir = (dir == 0 ? 3: (dir-1)); break;
-				case RIGHT: dir = (dir + 1) % 4; break;
-			}
-
-			// Prüfen, ob sich Aminos überlappen
-			switch(dir)
-			{
-				case NORTH:
-					y++;
-					break;
-				case SOUTH:
-					y--;
-					break;
-				case EAST:
-					x++;
-					break;
-				case WEST:
-					x--;
-					break;
-			}
-			//std::cout << x << "/" << y << std::endl;
-			if(matrix[x][y] != -1) throw -1;
-
-			// Grenzen ermitteln
-			if(x > maxX) maxX = x;
-			if(x < minX) minX = x;
-			if(y > maxY) maxY = y;
-			if(y < minY) minY = y;
-
-			// Direkte Verbindungen zählen
-			if(lastIsHydrophob && amino->IsHydrophob()) directConnections++;
-
-			// In Matrix eintragen
-			matrix[x][y] = (amino->IsHydrophob() ? 1 : 0);
-
-			lastIsHydrophob = amino->IsHydrophob();
-		}
-		#pragma endregion
-
-		#pragma region Alle Verbindungen in der Matrix zählen
-		for(int x = 0; x<height; x++)
-		{
-			for(int y = 0; y<width; y++)
-			{
-				int hydrophob = matrix[x][y];
-
-				// Wenn leer, dann weiter
-				if(hydrophob == -1) continue;
-				// Wenn Hydrophob, dann beahndeln
-				else if(hydrophob == 1)
-				{
-					// Alle Verbindungen des Hydrophobs zählen
-					if(matrix[x+1][y] == 1) connections++;
-					if(matrix[x-1][y] == 1) connections++;
-					if(matrix[x][y+1] == 1) connections++;
-					if(matrix[x][y-1] == 1) connections++;
-
-					// Markierung auf leer setzen
-					matrix[x][y] = -1;
-				}
-			}
-		}
-		#pragma endregion
-	}
-	catch(int e)
-	{
-		return e;
-	}
-
-	// Alle drekten Verbundungen von der Gesamtzahl aller Verbindungen abziehen
-	int f = connections - directConnections;
-
-	// Wenn die gezählte Zahl kleiner 0 ist, dann liegt ein Fehler vor, der mit einer -2 signalisiert wird
-	if(f < 0) return -2;
-
-	// Fitness zurückgeben
-	return f;
-}
-
-void show(Amino* faltung)
-{
-	int x, y;
-	const int width = 200;
-	const int height = 200;
-	Amino::DisplayInfo* matrix[width][height];
-	int startX = width / 2, startY = height / 2;
-
-	#pragma region Initialisierung
-	// Alle Felder mit -1 (==leer) initialisieren
-	for(int x = 0; x<height; x++)
-	{
-		for(int y = 0; y<width; y++)
-		{
-			matrix[x][y] = nullptr;
-		}
-	}
-	//*/
-
-	// Anfangskoordinaten setzen
-	x = startX;
-	y = startY;
-	#pragma endregion
-
-	#pragma region Aminos in Matrix eintragen
-	Amino::DisplayInfo* lastAminoDisplayInfo = nullptr;
-	int dirNr = NORTH;
-	SkyDirection sDir = NORTH;
-	int maxX = startX, minX = startX, maxY = startY, minY= startY;
-	for(int i = 0; i<FALTUNG_LENGTH; i++)
-	{
-		Amino* amino = &faltung[i];
-
-		// Die richtige Himmelsrichtung einschlagen
-		switch(amino->GetDir())
-		{
-			// Bei Vorwärts ändert sich nichts
-			case FORWARD: break;
-			// Ansonsten ändert sich die Richtung
-			case LEFT: dirNr = (sDir == 0 ? 3: (sDir-1)); break;
-			case RIGHT: dirNr = (sDir + 1) % 4; break;
-		}
-
-		// std::cout << (amino->GetDir() == FORWARD ? "FORWARD" : (amino->GetDir() == LEFT ? "LEFT" : "RIGHT")) << " | ";
-			
-		switch(dirNr)
-		{
-			case NORTH:
-				sDir = NORTH;
-				y++;
-				break;
-			case SOUTH:
-				sDir = SOUTH;
-				y--;
-				break;
-			case EAST:
-				sDir = EAST;
-				x++;
-				break;
-			case WEST:
-				sDir = WEST;
-				x--;
-				break;
-		}
-		
-		// Grenzen ermitteln
-		if(x > maxX) maxX = x;
-		if(x < minX) minX = x;
-		if(y > maxY) maxY = y;
-		if(y < minY) minY = y;
-
-		if(lastAminoDisplayInfo != nullptr) lastAminoDisplayInfo->SetRelDir(amino->GetDir());
-
-		lastAminoDisplayInfo = new Amino::DisplayInfo(sDir, amino->IsHydrophob());
-		
-		// In Matrix eintragen
-		matrix[x][y] = lastAminoDisplayInfo;
-	}
-	#pragma endregion
-	
-	#pragma region Aminos anzeigen	
-	//const int protWidth = maxX - minX;
-	//const int protHeight = maxY - minY;
-
-	maxX++;
-	maxY++;
-	minX--;
-	minY--;
-
-	//std::cout << "Protein: (X: " << minX << "/" << maxX << " | Y: " << minY << "/" << maxY << ")" << std::endl;
-	
-	for(int y = maxY; y>=minY; y--)
-	{
-		std::cout << std::setw(3) << (-(y-maxY)+1);
-
-		for(int x = minX; x<=maxX; x++)
-		{
-			Amino::DisplayInfo* amino = matrix[x][y];
-
-			// Wenn leer, dann weiter
-			if(amino == nullptr) std::cout << ' ';
-			else
-			{
-				if(amino->IsHydrophob()) SetConsoleTextAttribute(hstdout, (x%2 + y%2 == 1 ? 0x2f : 0xaf));
-				else SetConsoleTextAttribute(hstdout, 0x0f);
-
-				Direction relDir = amino->GetRelDir();
-
-				switch(amino->GetSkyDir())
-				{
-					case NORTH:
-						if(relDir == FORWARD) std::cout << (char)179;
-						else if(relDir == LEFT) std::cout << (char)191;
-						else std::cout << (char)218;
-						break;
-					case SOUTH:
-						if(relDir == FORWARD) std::cout << (char)179;
-						else if(relDir == LEFT) std::cout << (char)192;
-						else std::cout << (char)217;
-						break;
-					case EAST:
-						if(relDir == FORWARD) std::cout << (char)196;
-						else if(relDir == LEFT) std::cout << (char)217;
-						else std::cout << (char)191;
-						break;
-					case WEST:
-						if(relDir == FORWARD) std::cout << (char)196;
-						else if(relDir == LEFT) std::cout << (char)218;
-						else std::cout << (char)192;
-						break;
-				}
-
-				SetConsoleTextAttribute(hstdout, 0x0f);
-			}
-		}
-
-		std::cout << std::endl;
-	}
-	#pragma endregion
 }
