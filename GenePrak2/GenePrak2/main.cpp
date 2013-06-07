@@ -9,7 +9,16 @@
 #include <string>
 #include <windows.h>
 
-void sortHighscore(int, Protein**);
+// für Quicksort
+int compare (const void * a, const void * b)
+{
+	Protein* protA = *(Protein**)a;
+	Protein* protB = *(Protein**)b;
+
+	int returnMe = (protB->CalcFitness() - protA->CalcFitness());
+
+	return returnMe;
+}
 
 #pragma region Proteine
 /*### Testprotein ######################################################
@@ -21,15 +30,15 @@ const int BEST_FITNESS = 999;
 const int AMOUNT_PROTEINS = 10;
 const int GENERATIONS = 100;
 const int ELITE_AMOUNT = 3;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 50; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 50; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
 
 const bool SHOW_DETAILS = true;
-//*/
+/*/
 
-//*### PROTEIN 1 ######################################################
+/*/### PROTEIN 1 ######################################################
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 9;
@@ -38,7 +47,7 @@ const int BEST_FITNESS = 9;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 1000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -56,7 +65,7 @@ const int BEST_FITNESS = 99;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -73,7 +82,7 @@ const int BEST_FITNESS = 8;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 5; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -92,7 +101,7 @@ const int BEST_FITNESS = 99;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 200; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 200; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 8; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -110,7 +119,7 @@ const int BEST_FITNESS = 99;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 0;
 const double MUTATION_RATE_VARIANCE = 4; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -118,7 +127,7 @@ const double MUTATION_RATE_VARIANCE = 4; // Toleranz der Mutationsrate/Um wievie
 const bool SHOW_DETAILS = false;
 //*/
 
-/*### PROTEIN 6 ######################################################
+//*### PROTEIN 6 ######################################################
 const std::string PROT_1 = "11010101011110100010001000010001000101111010101011";
 const int FALTUNG_LENGTH = 50;
 const int BEST_FITNESS = 99;
@@ -128,7 +137,7 @@ const int BEST_FITNESS = 99;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -144,7 +153,7 @@ const int BEST_FITNESS = 50;
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
-const double GENERATION_WITH_LOWEST_MUATTION_RATE = 500; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
+const double GENERATION_WITH_LOWEST_MUTATION_RATE = 500; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 50;
 const double MUTATION_RATE_LOWEST = 10;
 const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wieviel die Rate beim Mutieren maximal abweichen darf
@@ -160,13 +169,13 @@ const bool ELITE_ONLY_ONCE = false;
 const bool ALLOW_DOUBLES = false;
 
 // Die Senkung der Mutationsrate pro Generation
-const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENERATION_WITH_LOWEST_MUATTION_RATE;
+const double MUTATION_RATE_LOWER = (MUTATION_RATE - MUTATION_RATE_LOWEST) / GENERATION_WITH_LOWEST_MUTATION_RATE;
 
 // Anzeige
 int NUMBER_WIDTH = 3;
 
 // Für Farbausgabe
-HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
+HANDLE hstdout = GetStdHandle(STD_OUTPUT_HANDLE);
 
 void main()
 {
@@ -223,7 +232,7 @@ void main()
 	Protein* highscore[AMOUNT_PROTEINS];
 	for(int i = 0; i<GENERATIONS; i++)
 	{
-		bool showRow = SHOW_DETAILS || i%500 == 0;
+		bool showRow = (SHOW_DETAILS || i%50 == 0);
 
 		if(showRow) std::cout << "Gen "<< std::setw(4) << std::right << (i+2) << " -> ";
 
@@ -259,7 +268,7 @@ void main()
 			// Fitness in die Durschnittsrechnung einrechnen
 			generationAverage += (f == -1 ? 0 : f);
 
-			// Die Elite nicht in den Highscore (und damit in die nächste Generation übernehemen)
+			// Die Elite nicht in den Highscore (und damit nicht in die nächste Generation übernehemen)
 			if(!ELITE_ONLY_ONCE || count >= ELITE_AMOUNT) highscore[count - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = *iter;
 
 			// Fortlaufender index;
@@ -267,7 +276,8 @@ void main()
 		}
 
 		// Highscore sortieren
-		sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), highscore);
+		//sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), highscore);
+		qsort (highscore, AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), sizeof(Protein*), compare);
 
 		// Auswerten, welches bestes Protein ist
 		Protein* bestGenerationProtein = highscore[0];
@@ -323,6 +333,7 @@ void main()
 		#pragma endregion
 		
 		#pragma region Selektion
+		//*
 		// X Elite-Proteine wählen, die nicht gleich sind
 		std::list<std::string> proteinIds = std::list<std::string>();
 		for(int i = 0; i<AMOUNT_PROTEINS - ELITE_AMOUNT; i++)
@@ -365,7 +376,9 @@ void main()
 			else newPopulation.push_back(eliteProteins[copyFrom]->Copy());
 		}
 
+		std::list<Protein*> deleteUs = populations;
 		populations = newPopulation;
+		//*/
 		#pragma endregion
 
 		// Wenn Maximum erreicht, dann abbrechen
@@ -374,6 +387,7 @@ void main()
 		// Mutationsrate senken
 		MUTATION_RATE -= MUTATION_RATE_LOWER;
 
+		// Wenn niedrigste Mutationsrate erreicht, dann Untergrenze setzen
 		if(MUTATION_RATE < MUTATION_RATE_LOWEST) MUTATION_RATE = MUTATION_RATE_LOWEST;
 	}
 	
@@ -393,22 +407,4 @@ void main()
 		eliteProteins[i]->Show();
 	}
 	#pragma endregion
-}
-
-void sortHighscore(int length, Protein** sortMe)
-{
-	Protein* temp_protein;
-   
-	for(int i=0; i<length; i++)
-	{
-		for(int j=0; j<length-1; j++)
-		{
-			if(sortMe[j]->CalcFitness() < sortMe[j+1]->CalcFitness())
-			{
-				temp_protein = sortMe[j];
-				sortMe[j] = sortMe[j+1];
-				sortMe[j+1] = temp_protein;
-			}
-		}
-	}
 }

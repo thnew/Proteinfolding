@@ -24,7 +24,11 @@ Protein::Protein()
 {
 	this->Fitness = -5;
 }
-Protein::~Protein(){}
+
+Protein::~Protein()
+{
+	delete this->Aminos;
+}
 
 Amino* Protein::GetAminos()
 {
@@ -35,15 +39,15 @@ int Protein::CalcFitness()
 {
 	if(this->Fitness != -5) return this->Fitness;
 
-	if(this->Length < 0)
-		std::cout << std::endl << "Fitness-> Length < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-
-	const int MATRIX_SIZE = 20;
+	//if(this->Length < 0) std::cout << std::endl << "Fitness-> Length < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	
+	const int MATRIX_SIZE = this->Length * 2 + 3;
 	int x, y;
 	const int width = MATRIX_SIZE;
 	const int height = MATRIX_SIZE;
-	int matrix[width][height];
-	int startX = width / 2, startY = height / 2;
+	int** matrix = new int*[width];
+	int startX = (width - 1) / 2;
+	int startY = (height - 1) / 2;
 
 	int connections = 0;
 	int directConnections = 0;
@@ -53,11 +57,13 @@ int Protein::CalcFitness()
 	{
 		#pragma region Initialisierung
 		// Alle Felder mit -1 (==leer) initialisieren
-		for(int x = 0; x<height; x++)
+		for(int pX = 0; pX<height; pX++)
 		{
-			for(int y = 0; y<width; y++)
+			matrix[pX] = new int[width];
+
+			for(int pY = 0; pY<width; pY++)
 			{
-				matrix[x][y] = -1;
+				matrix[pX][pY] = -1;
 			}
 		}
 
@@ -68,7 +74,7 @@ int Protein::CalcFitness()
 
 		#pragma region Aminos in Matrix eintragen
 		int dir = NORTH;
-		int maxX = startX, minX = startX, maxY = startY, minY= startY;
+		//int maxX = startX, minX = startX, maxY = startY, minY= startY;
 		for(int i = 0; i<this->Length; i++)
 		{
 			Amino* amino = &this->Aminos[i];
@@ -102,11 +108,12 @@ int Protein::CalcFitness()
 			//std::cout << x << "/" << y << std::endl;
 			if(matrix[x][y] != -1) throw -1;
 
-			// Grenzen ermitteln
+			/*/ Grenzen ermitteln
 			if(x > maxX) maxX = x;
 			if(x < minX) minX = x;
 			if(y > maxY) maxY = y;
 			if(y < minY) minY = y;
+			//*/
 
 			// Direkte Verbindungen zählen
 			if(lastIsHydrophob && amino->IsHydrophob()) directConnections++;
@@ -145,9 +152,17 @@ int Protein::CalcFitness()
 	}
 	catch(int e)
 	{
+		// Matrix löschen
+		for(int pX = 0; pX<height; pX++) delete matrix[pX];
+		delete matrix;
+
 		this->Fitness = e;
 		return e;
 	}
+
+	// Matrix löschen
+	for(int pX = 0; pX<height; pX++) delete matrix[pX];
+	delete matrix;
 
 	// Alle drekten Verbundungen von der Gesamtzahl aller Verbindungen abziehen
 	int f = connections - directConnections;
@@ -173,8 +188,8 @@ Protein* Protein::Copy()
 
 void Protein::Mutate(double mutationRate)
 {
-	if(this->Length < 0) 
-		std::cout << std::endl << "Mutate-> Length < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	//if(this->Length < 0) std::cout << std::endl << "Mutate-> Length < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	//std::cout << "Rate: " << mutationRate << std::endl;
 	
 	// Anzahl der Mutationen berechnen
 	int mutations = (mutationRate / 100.0) * this->Length;
@@ -185,7 +200,7 @@ void Protein::Mutate(double mutationRate)
 	for(int i=0; i<mutations; i++)
 	{
 		// Nach Zufall eine Aminosäure ermitteln
-		int randAmino = rand() % this->Length;
+		int randAmino = rand() % (this->Length - 1) + 1; // Erste Aminosäure ignorieren
 	
 		// so lange eine neue zufällige Richtung ermitteln, bis eine NEUE Richtung ermittelt wurde
 		int randDir;
@@ -205,6 +220,12 @@ void Protein::Mutate(double mutationRate)
 		// Richtung in der Aminosäure setzen
 		this->Aminos[randAmino].SetDir((Direction)randDir);
 	}
+
+	// Fitness zurücksetzen
+	this->Fitness = -5;
+
+	// Id zurücksetzen
+	this->Id = "";
 }
 
 
@@ -214,13 +235,13 @@ std::string Protein::Identifier()
 	/*
 	int id = 0;
 
-	for(int i = 0; i<length; i++)
+	for(int i = 0; i<this->Length; i++)
 	{
 		int aminoId = 0;
 		
-		if(protein[i].GetDir() == LEFT) aminoId = 0;
-		else if(protein[i].GetDir() == FORWARD) aminoId = 1;
-		else if(protein[i].GetDir() == RIGHT) aminoId = 2;
+		if(this->Aminos[i].GetDir() == LEFT) aminoId = 0;
+		else if(this->Aminos[i].GetDir() == FORWARD) aminoId = 1;
+		else if(this->Aminos[i].GetDir() == RIGHT) aminoId = 2;
 		
 		///id += aminoId * (i+1) * 100;
 
@@ -229,30 +250,34 @@ std::string Protein::Identifier()
 	}
 
 	return id;
-	//*/
+	/*/
 
 	if(this->Id.size() > 0) return this->Id;
 
 	//std::string id = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	std::string id = "000000000000000000000000000000";
+	//std::string id = "000000000000000000000000000000";
+	std::string id = new char[this->Length];
+	id = id.substr(0,this->Length-1);
 
-	for(int i = 0; i<this->Length; i++)
+	char aminoId = '0';
+	Direction dir;
+
+	for(int i = 1; i<this->Length; i++)
 	{
-		char aminoId = '0';
+		dir = this->Aminos[i].GetDir();
+
+		if(dir == LEFT) aminoId = 'L';
+		else if(dir == FORWARD) aminoId = 'F';
+		else if(dir == RIGHT) aminoId = 'R';
 		
-		if(this->Aminos[i].GetDir() == LEFT) aminoId = '0';
-		else if(this->Aminos[i].GetDir() == FORWARD) aminoId = '1';
-		else if(this->Aminos[i].GetDir() == RIGHT) aminoId = '2';
-		
-		id[i] = aminoId;
+		id[i - 1] = aminoId;
 	}
 
 	this->Id = id;
 
 	return id;
+	//*/
 }
-
-
 
 void Protein::Show()
 {
