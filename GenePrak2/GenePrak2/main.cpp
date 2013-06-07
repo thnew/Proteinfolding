@@ -20,6 +20,19 @@ int compare (const void * a, const void * b)
 	return returnMe;
 }
 
+int modifiedFitness(double fitness, double averageFitness, double maxFitness)
+{
+	return fitness;
+	double c_mult = 2;
+
+	double delta = maxFitness - averageFitness;
+
+	double a = (c_mult - 1) * averageFitness / delta;
+	double b = averageFitness * (maxFitness - c_mult * averageFitness) / delta;
+
+	return ceil(a * fitness + b);
+}
+
 #pragma region Proteine
 /*### Testprotein ######################################################
 const std::string PROT_1 = "10100110100101100101";
@@ -42,7 +55,7 @@ const bool SHOW_DETAILS = true;
 const std::string PROT_1 = "10100110100101100101";
 const int FALTUNG_LENGTH = 20;
 const int BEST_FITNESS = 9;
-
+ 
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 1000;
@@ -63,7 +76,7 @@ const int BEST_FITNESS = 99;
 
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
-const int GENERATIONS = 5000;
+const int GENERATIONS = 1000;
 const int ELITE_AMOUNT = AMOUNT_PROTEINS / 20;
 const double GENERATION_WITH_LOWEST_MUTATION_RATE = 100; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 75;
@@ -152,7 +165,7 @@ const int BEST_FITNESS = 50;
 // Konfiguration
 const int AMOUNT_PROTEINS = 500;
 const int GENERATIONS = 5000;
-const int ELITE_AMOUNT = 100;
+const int ELITE_AMOUNT = 25;
 const double GENERATION_WITH_LOWEST_MUTATION_RATE = 1000; // Die Generation, bei der die niedrigste Mutationsrate erreicht werden soll
 double MUTATION_RATE = 40;
 const double MUTATION_RATE_LOWEST = 10;
@@ -161,9 +174,6 @@ const double MUTATION_RATE_VARIANCE = 10; // Toleranz der Mutationsrate/Um wievi
 const bool SHOW_DETAILS = false;
 //*/
 #pragma endregion
-
-// Elite Auswahl wird nur einmal übernommen, danach nur dessen Mutationen
-const bool ELITE_ONLY_ONCE = false;
 
 // Doppelete erlauben
 const bool ALLOW_DOUBLES = false;
@@ -186,16 +196,13 @@ void main()
 
 	std::list<Protein*> populations = std::list<Protein*>();
 	
-	Protein bestProtein = Protein(0);
+	Protein bestProtein = Protein(0, 0);
 	int bestProtein_round = -1;
 	Protein* highscore[AMOUNT_PROTEINS];
 	std::list<Protein*>::iterator populationIter;
 	double generationFitnessTotal;
 	double generationFitnessAverage;
 	int proteinIndex;
-
-	// Ausgangsprotein
-	Protein* proteinToCopy = new Protein(PROT_1);
 
 	// Titel
 	SetConsoleTextAttribute(hstdout, 0x1f);
@@ -212,13 +219,12 @@ void main()
 	std::cout << std::endl;
 	#pragma endregion
 
-	#pragma region Population generieren
+	#pragma region Erste Population generieren
 	if(SHOW_DETAILS) std::cout << std::setw(6) << std::right << "Gen    1 -> ";
 	for(int i = 0; i<AMOUNT_PROTEINS; i++)
 	{
 		// Ausgangsprotein kopieren
-		Protein* addMe = new Protein(FALTUNG_LENGTH);
-		addMe = proteinToCopy->Copy();
+		Protein* addMe = new Protein(PROT_1, i);
 
 		if(SHOW_DETAILS)
 		{
@@ -242,8 +248,8 @@ void main()
 
 		#pragma region Mutieren
 		// Mutieren lassen und Besten suchen
-		generationFitnessTotal = 0;
 		proteinIndex = 0;
+		generationFitnessTotal = 0;
 		for (populationIter = populations.begin(); populationIter != populations.end(); ++populationIter)
 		{
 			double mutation_rate = MUTATION_RATE;
@@ -261,8 +267,8 @@ void main()
 				if(mutation_rate < MUTATION_RATE_LOWEST) mutation_rate = MUTATION_RATE_LOWEST;
 			}
 
-			// Mutieren (aber nicht die "Elite", die bleibt bestehen)
-			if(proteinIndex >= ELITE_AMOUNT) (*populationIter)->Mutate(mutation_rate);
+			// Mutieren
+			(*populationIter)->Mutate(mutation_rate);
 
 			// Fitness ausrechnen
 			int f = (*populationIter)->CalcFitness();
@@ -271,21 +277,30 @@ void main()
 			generationFitnessTotal += (f == -1 ? 0 : f);
 
 			// Die Elite nicht in den Highscore (und damit nicht in die nächste Generation übernehemen)
-			if(!ELITE_ONLY_ONCE || proteinIndex >= ELITE_AMOUNT) highscore[proteinIndex - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0)] = *populationIter;
+			highscore[proteinIndex] = *populationIter;
 
 			// Fortlaufender index;
 			proteinIndex++;
 		}
 
+		// Durschnittsrechnung
+		generationFitnessAverage = ceil(generationFitnessTotal / populations.size() * 10) / 10.0;
+
 		// Highscore sortieren
 		//sortHighscore(AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), highscore);
-		qsort (highscore, AMOUNT_PROTEINS - (ELITE_ONLY_ONCE ? ELITE_AMOUNT : 0), sizeof(Protein*), compare);
+		qsort (highscore, AMOUNT_PROTEINS, sizeof(Protein*), compare);
+
+		// Alle Fitnesswerte modifizieren und Durchschnitt berechnen
+		generationFitnessTotal = 0;
+		int bestFitness = highscore[0]->CalcFitness();
+		for (populationIter = populations.begin(); populationIter != populations.end(); ++populationIter)
+		{
+			int f = (*populationIter)->CalcFitness();
+			generationFitnessTotal += modifiedFitness(f, generationFitnessAverage, bestFitness);
+		}
 
 		// Bestes Protein merken
 		Protein bestGenerationProtein = *highscore[0]->Copy();
-
-		// Durschnittsrechnung abschließen
-		generationFitnessAverage = ceil(generationFitnessTotal / populations.size() * 10) / 10.0;
 		#pragma endregion
 
 		#pragma region Anzeigen
@@ -334,6 +349,9 @@ void main()
 		}
 		#pragma endregion
 		
+		// Wenn Maximum erreicht, dann abbrechen
+		if(bestProtein.CalcFitness() == BEST_FITNESS || i==(GENERATIONS-1)) break;
+
 		#pragma region Selektion
 		//*
 		// X Elite-Proteine wählen, die nicht gleich sind
@@ -350,43 +368,56 @@ void main()
 				std::list<std::string>::iterator findIter = std::find(proteinIds.begin(), proteinIds.end(), id);
 				if(findIter == proteinIds.end())
 				{
-					newPopulation.push_back(highscore[i]->Copy());
+					Protein* addMe = highscore[i]->Copy();
+					addMe->SetNoMutation(true);
+					newPopulation.push_back(addMe);
+					
 					proteinIds.push_back(id);
 				}
-
-				// Wenn Liste voll, dann abbrechen
-				if(proteinIds.size() == ELITE_AMOUNT) break;
 			}
 			else newPopulation.push_back(highscore[i]->Copy());
+
+			// Wenn Liste voll, dann abbrechen
+			if(newPopulation.size() == ELITE_AMOUNT) break;
 		}
 
 		// Wenn zu wenig Elite Proteine vorhanden, dann Rest mit Bestem Protein auffüllen
-		if(proteinIds.size() < ELITE_AMOUNT)
+		if(newPopulation.size() < ELITE_AMOUNT)
 		{
-			for(int i = proteinIds.size(); i<ELITE_AMOUNT; i++) newPopulation.push_back(highscore[0]->Copy());
+			for(int i = newPopulation.size(); i<ELITE_AMOUNT; i++) newPopulation.push_back(highscore[0]->Copy());
 		}
-
-		// Wenn Maximum erreicht, dann abbrechen
-		if(bestProtein.CalcFitness() == BEST_FITNESS) break;
+		//*/
 
 		// Neue Population generieren
-		int proteinsLeft = AMOUNT_PROTEINS - ELITE_AMOUNT;
-		for (populationIter = populations.begin(); populationIter != populations.end(); ++populationIter)
+		int proteinsLeft = (AMOUNT_PROTEINS - ELITE_AMOUNT);
+		int fitnessLeft = generationFitnessTotal;
+
+		do
 		{
-			int f = (*populationIter)->CalcFitness();
-			if(f == -1) f = 0;
-
-			int amountOfClones = floor((f / generationFitnessTotal) * (AMOUNT_PROTEINS - ELITE_AMOUNT)); // floor(x + 0.5) simuliert round
-
-			for(int a = 0; a < amountOfClones && proteinsLeft > 0; a++)
+			int amountToFill = proteinsLeft;
+			double fitnessLeftTotal = fitnessLeft;
+			for (populationIter = populations.begin(); populationIter != populations.end(); ++populationIter)
 			{
-				newPopulation.push_back((*populationIter)->Copy());
+				int f = modifiedFitness((*populationIter)->CalcFitness(), generationFitnessAverage, bestGenerationProtein.CalcFitness());
+				if(f == -1) f = 0;
+
+				if(generationFitnessTotal == 0) f = 1;
+
+				int amountOfClones = floor((f / fitnessLeftTotal) * amountToFill + 0.5); // floor(x + 0.5) simuliert round
+
+				for(int a = 0; a < amountOfClones && proteinsLeft > 0; a++)
+				{
+					newPopulation.push_back((*populationIter)->Copy());
 			
-				proteinsLeft--;
+					proteinsLeft--;
+				}
+
+				if(proteinsLeft == 0) break;
 			}
 
-			if(proteinsLeft == 0) break;
-		}
+			// Falls ein nächster Durchlauf nötig ist, verbleibende Fitness anpassen
+			fitnessLeft = proteinsLeft;
+		} while(proteinsLeft > 0);
 
 		// Alte Population löschen
 		for (std::list<Protein*>::iterator deleteIter = populations.begin(); deleteIter != populations.end(); ++deleteIter) delete *deleteIter;

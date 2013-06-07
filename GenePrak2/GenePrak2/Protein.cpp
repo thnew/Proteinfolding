@@ -4,18 +4,22 @@
 #include <iomanip>
 #include <windows.h>
 
-Protein::Protein(int length)
+Protein::Protein(int length, int familyNr)
 {
 	this->Fitness = -5;
-	this->Aminos = new Amino[length];
 	this->Length = length;
+	this->Aminos = new Amino[length];
+	this->FamilyNr = familyNr;
+	this->NoMutation = false;
 }
 
-Protein::Protein(std::string copyMe)
+Protein::Protein(std::string copyMe, int familyNr)
 {
 	this->Fitness = -5;
 	this->Length = copyMe.size();
 	this->Aminos = new Amino[this->Length];
+	this->FamilyNr = familyNr;
+	this->NoMutation = false;
 
 	for(int i = 0; i<this->Length; i++) this->Aminos[i] = Amino(FORWARD, copyMe[i] == 49);
 }
@@ -23,6 +27,7 @@ Protein::Protein(std::string copyMe)
 Protein::Protein()
 {
 	this->Fitness = -5;
+	this->NoMutation = false;
 }
 
 Protein::~Protein()
@@ -177,9 +182,16 @@ int Protein::CalcFitness()
 	return f;
 }
 
+void Protein::SetNoMutation(bool noMutation)
+{
+	this->NoMutation = noMutation;
+}
+
 Protein* Protein::Copy()
 {
-	Protein* returnMe = new Protein(this->Length);
+	Protein* returnMe = new Protein(this->Length, this->FamilyNr);
+
+	returnMe->SetNoMutation(this->NoMutation);
 
 	memcpy(returnMe->GetAminos(), this->Aminos, this->Length * sizeof(*this->Aminos));
 
@@ -188,6 +200,12 @@ Protein* Protein::Copy()
 
 void Protein::Mutate(double mutationRate)
 {
+	if(this->NoMutation)
+	{
+		this->NoMutation = false;
+		return;
+	}
+
 	//if(this->Length < 0) std::cout << std::endl << "Mutate-> Length < 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	//std::cout << "Rate: " << mutationRate << std::endl;
 	
@@ -228,8 +246,8 @@ void Protein::Mutate(double mutationRate)
 	this->Id = "";
 }
 
-
 // Generates a number, that identifies a protein
+const char hexchar[17] = "0123456789ABCDEF";
 std::string Protein::Identifier()
 {
 	/*
@@ -253,24 +271,36 @@ std::string Protein::Identifier()
 	/*/
 
 	if(this->Id.size() > 0) return this->Id;
+	
+	int familyIdLength = 4;
 
 	//std::string id = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	//std::string id = "000000000000000000000000000000";
 	std::string id = new char[this->Length];
-	id = id.substr(0,this->Length-1);
+	id = id.substr(0,this->Length + familyIdLength);
 
+	// FamilyId ermitteln und einfügen
+	int familyNr = this->FamilyNr;
+	for(int i = 0; i < familyIdLength; i++)
+	{
+		id[i] = (familyNr > 0 ? hexchar[familyNr & 0xf] : '0');
+		familyNr = familyNr >> 4;
+	}
+
+	id[familyIdLength] = '-';
+
+	// restliche Id bilden
 	char aminoId = '0';
 	Direction dir;
-
-	for(int i = 1; i<this->Length; i++)
+	for(int i = familyIdLength + 1; i<this->Length + familyIdLength; i++)
 	{
-		dir = this->Aminos[i].GetDir();
+		dir = this->Aminos[i - familyIdLength].GetDir();
 
 		if(dir == LEFT) aminoId = 'L';
 		else if(dir == FORWARD) aminoId = 'F';
 		else if(dir == RIGHT) aminoId = 'R';
 		
-		id[i - 1] = aminoId;
+		id[i] = aminoId;
 	}
 
 	this->Id = id;
