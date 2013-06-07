@@ -27,7 +27,7 @@ Protein::Protein()
 
 Protein::~Protein()
 {
-	delete this->Aminos;
+	//delete this->Aminos;
 }
 
 Amino* Protein::GetAminos()
